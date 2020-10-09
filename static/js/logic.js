@@ -31,17 +31,15 @@ d3.json(usgs, function(data){
   //  var earthquakes = L.geoJSON(usgsData, {
   //    onEachFeature: onEachFeature
   //  });
-  console.log(usgsData);
-  // var markers = L.markerClusterGroup({
-  //   chunkedLoading: true,
-  //   spiderfyOnMaxZoom: false
-  // });
+  console.log(usgsData.place);
   var markers = L.markerClusterGroup();
   for (var i = 0; i < usgsData.length; i++){
     var latlng = usgsData[i].geometry.coordinates;
     // console.log(latlng);
     var m = L.marker([latlng[1], latlng[0]], {title: "test"});
+    m.bindPopup("<h3>" + usgsData[i].properties.place + "</h3>")
     markers.addLayer(m)
+    // markers.bindPopup("<h3>" + usgsData[i].properties.place + "</h3>")
   };
   // map.addLayer(markers)
    //now put earthquakes layer into the createmap fxn
