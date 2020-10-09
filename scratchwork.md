@@ -49,7 +49,7 @@ Output
         gap: Decimal,
         magType: String,
         type: String
-      },
+      }, 
       geometry: {
         type: "Point",
         coordinates: [

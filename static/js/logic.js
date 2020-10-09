@@ -11,13 +11,51 @@
 //   accessToken: API_KEY
 // }).addTo(myMap);
 
-//attempt to import geojson data 
-var usgs = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson"
+//attempt to import geojson data
+function getColor(d){
+  if(d<10){
+    return "#feedde"
+  } else if (d > 10 && d < 20 ){
+    return "#fdd0a2"
+  } else if (d > 20 && d < 50){
+    return "#fdae6b"
+  } else if (d > 50 && d < 100){
+    return "#fd8d3c"
+  } else if (d > 100 && d < 200){
+    return "#f16913"
+  } else if (d > 200 && d < 300){
+    return "#d94801"
+  } else if (d > 300 && d < 450){
+    return "#8c2d04"
+  } else {
+    return "blue"
+  };
+}
 
+var testGroup = new L.LayerGroup(testGroup) 
+var usgs = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson"
+function styleInfo(feature){
+  return {
+      color: getColor(feature.geometry.coordinates[2]),
+      fillColor: getColor(feature.geometry.coordinates[2]),
+      fillOpacity: 0.75,
+      radius: 5 //update w/magnitude later
+  }
+}
 d3.json(usgs, function(data){
   //send data.features object to createFeatures fxn
   createFeatures(data.features);
+  L.geoJson(data, {
+    pointToLayer: function(feature, latlng){
+      return L.circleMarker(latlng)
+    },
+    style: styleInfo
+
+ 
+  }).addTo(testGroup);
 });
+
+testGroup.addTo(myMap);
  //define createFeatures fxn to run once on each feature
  //give it a test popup?
 
@@ -31,27 +69,33 @@ d3.json(usgs, function(data){
   //  var earthquakes = L.geoJSON(usgsData, {
   //    onEachFeature: onEachFeature
   //  });
- 
+  var depth = "black"
   var markers = L.markerClusterGroup();
   var magnitude = [];
+
+ 
   for (var i = 0; i < usgsData.length; i++){
     var latlng = usgsData[i].geometry.coordinates;
     // console.log(usgsData[i].properties.mag);
     // console.log(latlng);
+    var size = (usgsData[i].properties.mag)*10000;
+    // console.log(size);
+    
 
     //this adds a marker and builds a marker cluster group for each earthquake
     var m = L.marker([latlng[1], latlng[0]], {title: "test"});
     m.bindPopup("<h3>" + usgsData[i].properties.place + "</h3><hr>" + "<h4> Magnitude: " + usgsData[i].properties.mag + "</h4>")
     markers.addLayer(m)
-   //now try to add circles for each earthquake based on magnitude
+
+  //conditionals for depth color to add to circles
+  // console.log(getColor(latlng[2]));
+   //now try to add circles for each earthquake based on magnitude--it works! 
    magnitude.push(L.circle([latlng[1], latlng[0], {
      color: "black",
-     fillColor: "red",
+     fillColor: getColor(latlng[2]),
      fillOpacity: 0.75,
-     radius: usgsData[i].properties.mag*1000
+     radius: size
    }]));
-  
-   
   };
 var mag = L.layerGroup(magnitude);
   // map.addLayer(markers)
@@ -91,7 +135,8 @@ function createMap(earthquakes, mag){
     // Create overlay object to hold our overlay layer
     var overlayMaps = {
       Earthquakes: earthquakes,
-      Magnitude: mag
+      Magnitude: mag,
+      Test: testGroup
     };
     
       // Create our map, giving it the streetmap and earthquakes layers to display on load
