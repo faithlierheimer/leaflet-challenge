@@ -39,7 +39,7 @@ function styleInfo(feature){
       color: getColor(feature.geometry.coordinates[2]),
       fillColor: getColor(feature.geometry.coordinates[2]),
       fillOpacity: 0.75,
-      radius: 5 //update w/magnitude later
+      radius: feature.properties.mag*5 //update w/magnitude later
   }
 }
 d3.json(usgs, function(data){
