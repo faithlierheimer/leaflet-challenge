@@ -1,50 +1,46 @@
-// // initial map setup 
-// var myMap = L.map("map").setView([37.0902, -95.7129], 2);
+//Define URL to get data from
+var usgs = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson"
 
-// // //set initial tile layer using api key
-// L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
-//   attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
-//   tileSize: 512,
-//   maxZoom: 18,
-//   zoomOffset: -1,
-//   id: "mapbox/streets-v11",
-//   accessToken: API_KEY
-// }).addTo(myMap);
-
-//attempt to import geojson data
+//Define color fxn to change color based on depth of earthquake
 function getColor(d){
   if(d<10){
-    return "#feedde"
+    return "#ffffb2"
   } else if (d > 10 && d < 20 ){
-    return "#fdd0a2"
+    return "#fed976"
   } else if (d > 20 && d < 50){
-    return "#fdae6b"
+    return "#feb24c"
   } else if (d > 50 && d < 100){
     return "#fd8d3c"
   } else if (d > 100 && d < 200){
-    return "#f16913"
+    return "#fc4e2a"
   } else if (d > 200 && d < 300){
-    return "#d94801"
+    return "#e31a1c"
   } else if (d > 300 && d < 450){
-    return "#8c2d04"
+    return "#b10026"
   } else {
     return "blue"
   };
 }
+//define layer group to hold depth and magnitude data 
+var depthMagnitude = new L.LayerGroup(depthMagnitude) 
 
-var testGroup = new L.LayerGroup(testGroup) 
-var usgs = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson"
+//define styling rules for circle markers that will be diff size/color 
+//based on magnitude and depth
 function styleInfo(feature){
   return {
-      color: getColor(feature.geometry.coordinates[2]),
+      color: "#A9A9A9",
       fillColor: getColor(feature.geometry.coordinates[2]),
       fillOpacity: 0.75,
       radius: feature.properties.mag*5 //update w/magnitude later
   }
 }
+
+//bring in usgs data from above to work with 
 d3.json(usgs, function(data){
   //send data.features object to createFeatures fxn
   createFeatures(data.features);
+
+  //set up layer and styling info for magnitude/depth data, add to depthMagnitude layer
   L.geoJson(data, {
     pointToLayer: function(feature, latlng){
       return L.circleMarker(latlng)
@@ -52,28 +48,21 @@ d3.json(usgs, function(data){
     style: styleInfo
 
  
-  }).addTo(testGroup);
+  }).addTo(depthMagnitude);
 });
 
-testGroup.addTo(myMap);
- //define createFeatures fxn to run once on each feature
- //give it a test popup?
+//add depthMagnitude to the map
+depthMagnitude.addTo(myMap);
 
+
+//define function to make markers with earthquake data & locations
  function createFeatures(usgsData){
-  //  function onEachFeature(feature, layer){
-  //   layer.bindPopup("<h3>"+ feature.properties.place + "</h3><hr><p>" + new Date(feature.properties.time) + "</p>");
-  //  }
-
-   //make geojson layer that has features array on earthquake data object
-   //run onEachFeature fxn once for each piece of data in the array
-  //  var earthquakes = L.geoJSON(usgsData, {
-  //    onEachFeature: onEachFeature
-  //  });
-  var depth = "black"
+ 
+ 
   var markers = L.markerClusterGroup();
   var magnitude = [];
 
- 
+ //loop through data to make markers for each earthquake & collapse into marker clusters
   for (var i = 0; i < usgsData.length; i++){
     var latlng = usgsData[i].geometry.coordinates;
     // console.log(usgsData[i].properties.mag);
@@ -87,15 +76,7 @@ testGroup.addTo(myMap);
     m.bindPopup("<h3>" + usgsData[i].properties.place + "</h3><hr>" + "<h4> Magnitude: " + usgsData[i].properties.mag + "</h4>")
     markers.addLayer(m)
 
-  //conditionals for depth color to add to circles
-  // console.log(getColor(latlng[2]));
-   //now try to add circles for each earthquake based on magnitude--it works! 
-   magnitude.push(L.circle([latlng[1], latlng[0], {
-     color: "black",
-     fillColor: getColor(latlng[2]),
-     fillOpacity: 0.75,
-     radius: size
-   }]));
+  
   };
 var mag = L.layerGroup(magnitude);
   // map.addLayer(markers)
@@ -104,6 +85,7 @@ var mag = L.layerGroup(magnitude);
   createMap(markers, mag);
  }
 
+ //build actual map with street & dark layers, and overlays
 function createMap(earthquakes, mag){
   //need street map & darkmap layers--tho i think we could take these out
   var streetmap = L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
@@ -128,15 +110,11 @@ function createMap(earthquakes, mag){
       "Dark Map": darkmap
     };
 
-    // var clusters = L.markerClusterGroup();
-    // clusters.addLayer(earthquakes);
-    // map.addLayer(clusters);
-  
+    
     // Create overlay object to hold our overlay layer
     var overlayMaps = {
       Earthquakes: earthquakes,
-      Magnitude: mag,
-      Test: testGroup
+      "Depth and Magnitude" : depthMagnitude
     };
     
       // Create our map, giving it the streetmap and earthquakes layers to display on load
@@ -147,7 +125,7 @@ function createMap(earthquakes, mag){
     zoom: 5,
     layers: [streetmap, earthquakes]
   });
-//control layer
+//control layer to toggle on/off overlays
   L.control.layers(baseMaps, overlayMaps, {
     collapsed: false
   }).addTo(myMap);
