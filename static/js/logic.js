@@ -31,23 +31,36 @@ d3.json(usgs, function(data){
   //  var earthquakes = L.geoJSON(usgsData, {
   //    onEachFeature: onEachFeature
   //  });
-  console.log(usgsData.place);
+ 
   var markers = L.markerClusterGroup();
+  var magnitude = [];
   for (var i = 0; i < usgsData.length; i++){
     var latlng = usgsData[i].geometry.coordinates;
+    // console.log(usgsData[i].properties.mag);
     // console.log(latlng);
+
+    //this adds a marker and builds a marker cluster group for each earthquake
     var m = L.marker([latlng[1], latlng[0]], {title: "test"});
-    m.bindPopup("<h3>" + usgsData[i].properties.place + "</h3>")
+    m.bindPopup("<h3>" + usgsData[i].properties.place + "</h3><hr>" + "<h4> Magnitude: " + usgsData[i].properties.mag + "</h4>")
     markers.addLayer(m)
-    // markers.bindPopup("<h3>" + usgsData[i].properties.place + "</h3>")
+   //now try to add circles for each earthquake based on magnitude
+   magnitude.push(L.circle([latlng[1], latlng[0], {
+     color: "black",
+     fillColor: "red",
+     fillOpacity: 0.75,
+     radius: usgsData[i].properties.mag*1000
+   }]));
+  
+   
   };
+var mag = L.layerGroup(magnitude);
   // map.addLayer(markers)
    //now put earthquakes layer into the createmap fxn
   //  createMap(earthquakes);
-  createMap(markers);
+  createMap(markers, mag);
  }
 
-function createMap(earthquakes){
+function createMap(earthquakes, mag){
   //need street map & darkmap layers--tho i think we could take these out
   var streetmap = L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
     attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
@@ -78,6 +91,7 @@ function createMap(earthquakes){
     // Create overlay object to hold our overlay layer
     var overlayMaps = {
       Earthquakes: earthquakes,
+      Magnitude: mag
     };
     
       // Create our map, giving it the streetmap and earthquakes layers to display on load
