@@ -41,7 +41,7 @@ function styleInfo(feature){
 d3.json(usgs, function(data){
   //send data.features object to createFeatures fxn
   createFeatures(data.features);
-
+  
   //set up layer and styling info for magnitude/depth data, add to depthMagnitude layer
   L.geoJson(data, {
     pointToLayer: function(feature, latlng){
@@ -51,26 +51,30 @@ d3.json(usgs, function(data){
 
  
   }).addTo(depthMagnitude);
+  
+ 
+//feature.geometry.coordinates[2]
+
 });
 
 //add depthMagnitude to the map
-depthMagnitude.addTo(myMap);
+// depthMagnitude.addTo(myMap);
 
 
 //define function to make markers with earthquake data & locations
  function createFeatures(usgsData){
- 
- 
+  var depth_array = [];
+  
   var markers = L.markerClusterGroup();
   var magnitude = [];
 
  //loop through data to make markers for each earthquake & collapse into marker clusters
   for (var i = 0; i < usgsData.length; i++){
     var latlng = usgsData[i].geometry.coordinates;
-    // console.log(usgsData[i].properties.mag);
-    // console.log(latlng);
+    
     var size = (usgsData[i].properties.mag)*10000;
-    // console.log(size);
+    
+    depth_array.push(usgsData[i].geometry.coordinates[2]);
     
 
     //this adds a marker and builds a marker cluster group for each earthquake
@@ -80,15 +84,45 @@ depthMagnitude.addTo(myMap);
 
   
   };
+  var depth_array = depth_array.sort()
+  console.log(depth_array);
+
+  //legend
+  //try to make legend! 
+   //legend??
+   var legend = L.control({position: "bottomright"});
+   legend.onAdd = function(){
+     var div = L.domUtil.create("div", "info legend");
+     var depth_limits = depth_array;
+     var colors = depth_colors;
+     var labels = [];
+   
+     //put in min & max
+     var legendInfo = "<h1>Median Income</h1>" +
+       "<div class=\"labels\">" +
+         "<div class=\"min\">" + depth_limits[0] + "</div>" +
+         "<div class=\"max\">" + depth_limits[depth_limits.length - 1] + "</div>" +
+       "</div>";
+ 
+       div.innerHTML = legendInfo;
+ 
+       depth_limits.forEach(function(depth, index){
+         labels.push("<li style = \"background-color: " + colors[index] + "\"><li>");
+       });
+ 
+       div.innerHTML += "<ul>" + labels.join("") + "</ul>";
+       return div
+   }
 var mag = L.layerGroup(magnitude);
   // map.addLayer(markers)
    //now put earthquakes layer into the createmap fxn
   //  createMap(earthquakes);
   createMap(markers, mag);
- }
+  return legend
+ };
 
  //build actual map with street & dark layers, and overlays
-function createMap(earthquakes, mag){
+function createMap(earthquakes, mag, legend){
   //need street map & darkmap layers--tho i think we could take these out
   var streetmap = L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
     attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
@@ -127,16 +161,17 @@ function createMap(earthquakes, mag){
     zoom: 5,
     layers: [streetmap, earthquakes]
   });
+
+  
+
 //control layer to toggle on/off overlays
   L.control.layers(baseMaps, overlayMaps, {
     collapsed: false
   }).addTo(myMap);
+
+  //add legend
+  legend.addTo(myMap);
 }
 
-//try to make legend! 
-var legend = L.control({position: "bottomright"});
-legend.onAdd = function(){
-  var div = L.domUtil.create("div", "info legend");
-  var depth_limits = usgsData.coordinates[2]
-  var colors = depth_colors
-}
+
+ 
