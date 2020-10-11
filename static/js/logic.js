@@ -21,6 +21,8 @@ function getColor(d){
     return "blue"
   };
 }
+
+var depth_colors = ["#ffffb2", "#fed976", "#feb24c", "#fd8d3c", "#fc4e2a", "#e31a1c", "#b10026" ]
 //define layer group to hold depth and magnitude data 
 var depthMagnitude = new L.LayerGroup(depthMagnitude) 
 
@@ -117,7 +119,7 @@ function createMap(earthquakes, mag){
       "Depth and Magnitude" : depthMagnitude
     };
     
-      // Create our map, giving it the streetmap and earthquakes layers to display on load
+  // Create our map, giving it the streetmap and earthquakes layers to display on load
   var myMap = L.map("map", {
     center: [
       37.09, -95.71
@@ -129,4 +131,12 @@ function createMap(earthquakes, mag){
   L.control.layers(baseMaps, overlayMaps, {
     collapsed: false
   }).addTo(myMap);
+}
+
+//try to make legend! 
+var legend = L.control({position: "bottomright"});
+legend.onAdd = function(){
+  var div = L.domUtil.create("div", "info legend");
+  var depth_limits = usgsData.coordinates[2]
+  var colors = depth_colors
 }
