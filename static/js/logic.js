@@ -85,11 +85,11 @@ d3.json(usgs, function(data){
   
   };
   var depth_array = depth_array.sort()
-  console.log(depth_array);
+  // console.log(depth_array);
 
   //legend
-  //try to make legend! 
-   //legend??
+  // //try to make legend! 
+  //  //legend??
    var legend = L.control({position: "bottomright"});
    legend.onAdd = function(){
      var div = L.domUtil.create("div", "info legend");
@@ -113,16 +113,18 @@ d3.json(usgs, function(data){
        div.innerHTML += "<ul>" + labels.join("") + "</ul>";
        return div
    }
+   console.log(legend);
+var leg = L.layerGroup(legend);
 var mag = L.layerGroup(magnitude);
   // map.addLayer(markers)
    //now put earthquakes layer into the createmap fxn
   //  createMap(earthquakes);
-  createMap(markers, mag);
-  return legend
+  createMap(markers, mag, leg);
+
  };
 
  //build actual map with street & dark layers, and overlays
-function createMap(earthquakes, mag, legend){
+function createMap(earthquakes, leg){
   //need street map & darkmap layers--tho i think we could take these out
   var streetmap = L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
     attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
@@ -151,6 +153,7 @@ function createMap(earthquakes, mag, legend){
     var overlayMaps = {
       Earthquakes: earthquakes,
       "Depth and Magnitude" : depthMagnitude
+
     };
     
   // Create our map, giving it the streetmap and earthquakes layers to display on load
@@ -162,15 +165,17 @@ function createMap(earthquakes, mag, legend){
     layers: [streetmap, earthquakes]
   });
 
+  //why doesn't this work????? WHHY DOESN'T IT WORK
+  leg.addTo(myMap);
   
-
 //control layer to toggle on/off overlays
   L.control.layers(baseMaps, overlayMaps, {
     collapsed: false
   }).addTo(myMap);
 
+  // legend.addTo(myMap);
   //add legend
-  legend.addTo(myMap);
+  // legend.addTo(myMap);
 }
 
 
