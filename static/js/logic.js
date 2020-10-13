@@ -22,7 +22,7 @@ function getColor(d){
   };
 }
 
-var depth_colors = ["#ffffb2", "#fed976", "#feb24c", "#fd8d3c", "#fc4e2a", "#e31a1c", "#b10026" ]
+
 //define layer group to hold depth and magnitude data 
 var depthMagnitude = new L.LayerGroup(depthMagnitude) 
 
@@ -63,7 +63,7 @@ d3.json(usgs, function(data){
 
 //define function to make markers with earthquake data & locations
  function createFeatures(usgsData){
-  var depth_array = [];
+  // var depth_array = [];
   
   var markers = L.markerClusterGroup();
   var magnitude = [];
@@ -74,7 +74,7 @@ d3.json(usgs, function(data){
     
     var size = (usgsData[i].properties.mag)*10000;
     
-    depth_array.push(usgsData[i].geometry.coordinates[2]);
+    // depth_array.push(usgsData[i].geometry.coordinates[2]);
     
 
     //this adds a marker and builds a marker cluster group for each earthquake
@@ -84,47 +84,25 @@ d3.json(usgs, function(data){
 
   
   };
-  var depth_array = depth_array.sort()
+  // var depth_array = depth_array.sort()
   // console.log(depth_array);
 
   //legend
   // //try to make legend! 
   //  //legend??
-   var legend = L.control({position: "bottomright"});
-   legend.onAdd = function(){
-     var div = L.domUtil.create("div", "info legend");
-     var depth_limits = depth_array;
-     var colors = depth_colors;
-     var labels = [];
-   
-     //put in min & max
-     var legendInfo = "<h1>Median Income</h1>" +
-       "<div class=\"labels\">" +
-         "<div class=\"min\">" + depth_limits[0] + "</div>" +
-         "<div class=\"max\">" + depth_limits[depth_limits.length - 1] + "</div>" +
-       "</div>";
- 
-       div.innerHTML = legendInfo;
- 
-       depth_limits.forEach(function(depth, index){
-         labels.push("<li style = \"background-color: " + colors[index] + "\"><li>");
-       });
- 
-       div.innerHTML += "<ul>" + labels.join("") + "</ul>";
-       return div
-   }
-   console.log(legend);
-var leg = L.layerGroup(legend);
+  
+// var leg = L.layerGroup(legend);
 var mag = L.layerGroup(magnitude);
   // map.addLayer(markers)
    //now put earthquakes layer into the createmap fxn
   //  createMap(earthquakes);
-  createMap(markers, mag, leg);
+  //took out mag as an argument 
+  createMap(markers);
 
  };
 
  //build actual map with street & dark layers, and overlays
-function createMap(earthquakes, leg){
+function createMap(earthquakes){
   //need street map & darkmap layers--tho i think we could take these out
   var streetmap = L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
     attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
@@ -165,16 +143,45 @@ function createMap(earthquakes, leg){
     layers: [streetmap, earthquakes]
   });
 
+
+  //legend 
+  var legend = L.control({position: "bottomright"});
+  legend.onAdd = function(){
+    var div = L.DomUtil.create("div", "info legend");
+    var depth_limits = ["0-10", "10-20", "20-50", "50-100", "100-200", "200-300", "300-450" ]
+    var colors = ["#ffffb2", "#fed976", "#feb24c", "#fd8d3c", "#fc4e2a", "#e31a1c", "#b10026" ];
+    var labels = [];
+  
+    //put in min & max
+    var legendInfo = "<h1>Earthquake Depth</h1>"; 
+    //   "<div class=\"labels\">" +
+    //     "<div class=\"min\">" + depth_limits[0] + colors[0] "</div>" +
+    //     "<div class=\"min\">" + depth_limits[1] + "</div>" +
+    //     "<div class=\"min\">" + depth_limits[2] + "</div>" +
+    //     "<div class=\"min\">" + depth_limits[3] + "</div>" +
+    //     "<div class=\"min\">" + depth_limits[4] + "</div>" +
+    //     "<div class=\"min\">" + depth_limits[5] + "</div>" +
+    //     "<div class=\"min\">" + depth_limits[6] + "</div>" 
+    //   "</div>";
+
+      div.innerHTML = legendInfo;
+
+      depth_limits.forEach(function(depth, index){
+        labels.push(`<li style = background-color:${colors[index]}\></li>`);
+      });
+
+      div.innerHTML += "<ul>" + labels.join("") + "</ul>";
+      return div
+  }
+  console.log(legend);
   //why doesn't this work????? WHHY DOESN'T IT WORK
-  leg.addTo(myMap);
+  legend.addTo(myMap);
   
 //control layer to toggle on/off overlays
   L.control.layers(baseMaps, overlayMaps, {
     collapsed: false
   }).addTo(myMap);
 
-  // legend.addTo(myMap);
-  //add legend
   // legend.addTo(myMap);
 }
 
