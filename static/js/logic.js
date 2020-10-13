@@ -167,7 +167,7 @@ function createMap(earthquakes){
       div.innerHTML = legendInfo;
 
       depth_limits.forEach(function(depth, index){
-        labels.push(`<li style = background-color:${colors[index]}\></li>`);
+        labels.push(`<li style = background-color:${colors[index]}>${depth}</li>`);
       });
 
       div.innerHTML += "<ul>" + labels.join("") + "</ul>";
